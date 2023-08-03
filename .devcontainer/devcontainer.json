@@ -1,11 +1,6 @@
 {
   "image": "mcr.microsoft.com/devcontainers/universal:2",
-  "features": {
-    "node": {
-        "version": "lts",
-        "nodeGypDependencies": true
-    }
-  },
+  "features": {},
   "extensions": [
     "GitHub.copilot",
     "GitHub.copilot-chat"
