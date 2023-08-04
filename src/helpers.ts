@@ -1,18 +1,31 @@
-import path from "path";
-import fs from "fs";
-import https from 'https';
-import { Terraform } from "./terraform";
-import { Module } from "./module";
+import path from 'path'
+import fs from 'fs'
+import https from 'https'
+import {Terraform} from './terraform'
+import {Module} from './module'
 
-export const terraformRegex = /terraform[\s\S]*?\{[\s\S]*?required_version\s*=\s*"(?<refVersion>.+?)"[\s\S]*?}/;
+export const versionRegex = /^(?<operator>.*?)(?<numVersion>\d+\.\d+\.\d+)$/m
+export const terraformRegex =
+  /terraform[\s\S]*?\{[\s\S]*?required_version\s*=\s*"(?<refVersion>.+?)"[\s\S]*?}/
 
-export const versionRegex = /^.*?(?<numVersion>\d+\.\d+\.\d+)$/m;
+export const requiredProvidersRegex =
+  /required_providers\s*{\s*((?:[a-zA-Z0-9_-]+)\s*=\s*{\s*(?:(?:source\s*=\s*"[^"]*")(?:\s*version\s*=\s*"[^"]*")?|(?:version\s*=\s*"[^"]*")(?:\s*source\s*=\s*"[^"]*")?)\s*}[\s\n]*)+\s*}/gm
+export const providerRegex =
+  /(?<name>[a-zA-Z0-9_-]+)\s*=\s*{\s*(?:(?:source\s*=\s*"[^"]*")(?:\s*version\s*=\s*"[^"]*")?|(?:version\s*=\s*"[^"]*")(?:\s*source\s*=\s*"[^"]*")?)/gm
+export const providerVersionRegex = /version\s*=\s*"(?<refVersion>.*?)"/m
+export const providerNameRegex = /(?<name>[a-zA-Z0-9_-]+)\s*=\s*{/m
+export const providerSourceRegex = /source\s*=\s*"(?<owner>.*?)\/(?<name>.*?)"/m
 
-export const modRegex = /module\s*"(?<name>.*?)"\s*{[\s\S]*?source\s*=\s*"(?<source>.*?)"/gm;
-export const modSourceGitRegex= /^git@(?<host>[a-zA-Z0-9._-]+):(?<owner>[a-zA-Z0-9._-]+)\/(?<repo>[a-zA-Z0-9._-]+)\.git.*?\?ref=(?<refVersion>[a-zA-Z0-9._-]+)$/;
-export const modSourceGitHttpsRegex = /^git::https:\/\/(?<host>.*)\/(?<owner>.*)\/(?<repo>.*)\.git\?ref=.*$/;
-export const modSourceGitSshRegex = /^git::ssh:\/\/(?<host>.*)\/(?<owner>.*)\/(?<repo>.*)\.git\?ref=(?<ref>.*)$/m;
-export const modSourceGitSubDirRegex = /^git::http:\/\/(?<host>.*)\/(?<owner>.*)\/(?<repo>.*)\.git\?ref=(?<ref>.*)$/m;
+export const modRegex =
+  /module\s*"(?<name>.*?)"\s*{[\s\S]*?source\s*=\s*"(?<source>.*?)"/gm
+export const modSourceGitNoRef =
+  /^git@(?<host>.*?):(?<owner>.*?)\/(?<repo>.*?)\.git/m
+export const modSourceGitRef =
+  /^git@(?<host>.*?):(?<owner>.*?)\/(?<repo>.*?)\.git[\s\S]*?ref=(?<refVersion>.*?)$/m
+export const modSourceHttpsNoRef =
+  /^https:\/\/(?<host>.*?)\/(?<owner>.*?)\/(?<repo>.*?)\.git/m
+export const modSourceHttpsRef =
+  /^https:\/\/(?<host>.*?)\/(?<owner>.*?)\/(?<repo>.*?)\.git[\s\S]*?ref=(?<refVersion>.*?)$/m
 
 /**
  * Recursively searches a directory for Terraform configuration files with the `.tf` extension.
@@ -20,33 +33,33 @@ export const modSourceGitSubDirRegex = /^git::http:\/\/(?<host>.*)\/(?<owner>.*)
  * @returns A Promise that resolves to an array of Terraform file paths.
  */
 export async function findTerraformFiles(directory: string): Promise<string[]> {
-  return new Promise(async (resolve) => {
-    const files: string[] = [];
+  return new Promise(async resolve => {
+    const files: string[] = []
 
     // If the directory doesn't exist, return an empty array
-    if (!await isDirectory(directory)) {
-      return files;
+    if (!(await isDirectory(directory))) {
+      return files
     }
 
     // Get the directory contents
-    const dirents = await fs.promises.readdir(directory, { withFileTypes: true });
+    const dirents = await fs.promises.readdir(directory, {withFileTypes: true})
 
     // Loop through each directory entry
     for (const dirent of dirents) {
-      const fullPath = path.join(directory, dirent.name);
+      const fullPath = path.join(directory, dirent.name)
 
       // If the entry is a directory, recursively search it for Terraform files
       // Else if the entry is a file and has the `.tf` extension, add it to the array of files
       if (dirent.isDirectory()) {
-        const subFiles = await findTerraformFiles(fullPath);
-        files.push(...subFiles);
+        const subFiles = await findTerraformFiles(fullPath)
+        files.push(...subFiles)
       } else if (dirent.isFile() && path.extname(fullPath) === '.tf') {
-        files.push(fullPath);
+        files.push(fullPath)
       }
     }
 
-    resolve(files);
-  });
+    resolve(files)
+  })
 }
 
 /**
@@ -58,117 +71,215 @@ async function isDirectory(directory: string): Promise<boolean> {
   return new Promise(async (resolve, reject) => {
     try {
       // Resolve the Promise with a boolean indicating whether the path is a directory or not
-      const stats = await fs.promises.stat(directory);
-      resolve(stats.isDirectory());
+      const stats = await fs.promises.stat(directory)
+      resolve(stats.isDirectory())
     } catch (error: unknown) {
       if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
         // If the path doesn't exist, resolve the Promise with `false`
-        resolve(false);
+        resolve(false)
       }
 
       // If there's an error, reject the Promise with the error
-      reject(error);
+      reject(error)
     }
-  });
+  })
 }
 
 /**
- * Gets the current version of Terraform from the HashiCorp checkpoint API.
- * @returns A Promise that resolves to the current version of Terraform.
+ * Retrieves the latest version of Terraform from the HashiCorp Checkpoint API.
+ * @returns A Promise that resolves to a string representing the latest version of Terraform.
  */
-async function getCurrentTerraformVersion(): Promise<string> {
-  // Make a GET request to the HashiCorp checkpoint API to get the current version of Terraform
+export async function getCurrentTerraformVersion(): Promise<string> {
+  console.debug('Getting current Terraform version...')
   return new Promise((resolve, reject) => {
-    const requestOptions = {
+    const options = {
       headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'tdu'
-      },
-    };
-
-    https.get('https://checkpoint-api.hashicorp.com/v1/check/terraform', requestOptions, (resp: any) => {
-      let data = '';
-      
-      // Concatenate the response data chunks
-      resp.on('data', (chunk: string) => {
-        data += chunk;
-      });
-
-      // When the response ends, parse the JSON data and resolve the Promise with the current version of Terraform
-      resp.on('end', () => {
-        const version = JSON.parse(data).current_version;
-        resolve(version);
-      });
-    }).on('error', (err: any) => {
-      // If there's an error with the request, reject the Promise with the error
-      reject(err);
-    });
-  });
-}
-
-/**
- * Gets an array of `Terraform` instances from an array of Terraform source files.
- * @param files An array of file paths to Terraform source files.
- * @returns A promise that resolves to an array of `Terraform` instances.
- */
-export async function getTfInstanceFromFiles(files: string[]): Promise<Terraform[]> {
-  return new Promise(async (resolve) => {
-    const tfInstances: Terraform[] = [];
-
-    // Loop through each file and create a `Terraform` instance for each one
-    for (const file of files) {
-      const fileContents = await fs.promises.readFile(file, 'utf8');
-      const refVersionMatch = fileContents.match(terraformRegex);
-
-      // If the file contains a required version of Terraform, create a `Terraform` instance with the current version and the required version
-      if (refVersionMatch && refVersionMatch.groups) {
-        const currentVersion = await getCurrentTerraformVersion();
-        const tfInstance = new Terraform(file, currentVersion, refVersionMatch.groups.refVersion);
-        tfInstances.push(tfInstance);
+        'User-Agent': 'update-terraform-action'
       }
     }
 
-    resolve(tfInstances);
-  });
+    console.debug('Making request to HashiCorp Checkpoint API...')
+
+    https
+      .get(
+        'https://checkpoint-api.hashicorp.com/v1/check/terraform',
+        options,
+        response => {
+          let data = ''
+
+          response.on('data', chunk => {
+            data += chunk
+          })
+
+          response.on('end', () => {
+            const json = JSON.parse(data)
+            resolve(`~> ${json.current_version}`)
+          })
+        }
+      )
+      .on('error', error => {
+        reject(error)
+      })
+  })
 }
 
 /**
- * Gets an array of `Module` instances from an array of Terraform source files.
- * @param files An array of file paths to Terraform source files.
- * @param gitHubPAT A GitHub personal access token.
- * @returns A promise that resolves to an array of `Module` instances.
- * @throws An error if the latest version of the Terraform Module is not a valid version.
- * @throws An error if the reference version of the Terraform Module is not a valid version.
- * @throws An error if the GitHub API returns an error.
- * @throws An error if the GitHub API returns an invalid response.
+ * Generates the URL to the latest version of the Terraform Module.
+ * @param source The source URL of the Terraform Module.
+ * @returns The URL to the latest version of the Terraform Module.
  */
-export async function getModuleInstancesFromFiles(files: string[], gitHubPAT: string): Promise<Module[]> {
-  return new Promise(async (resolve, reject) => {
-      try {
-          const moduleInstances: Module[] = [];
+export function getLatestModuleVersionUrl(
+  source: string,
+  gitHubPAT: string,
+  gitHubEnterprisePAT: string
+): {url: string; authHeader: string; refVersion: string} {
+  let url = ''
+  let authHeader = ''
+  let refVersion = ''
+  let matches = undefined
+  let hasRefVersion = false
 
-          // Loop through each file and create a `Module` instance for each one
-          for (const file of files) {
-              const fileContents = await fs.promises.readFile(file, 'utf8');
-              const moduleMatches = fileContents.match(modRegex);
+  if (modSourceGitRef.test(source)) {
+    matches = source.match(modSourceGitRef)
+    hasRefVersion = true
+  } else if (modSourceGitNoRef.test(source)) {
+    matches = source.match(modSourceGitNoRef)
+    hasRefVersion = false
+  } else if (modSourceHttpsRef.test(source)) {
+    matches = source.match(modSourceHttpsRef)
+    hasRefVersion = true
+  } else if (modSourceHttpsRef.test(source)) {
+    matches = source.match(modSourceHttpsRef)
+    hasRefVersion = false
+  }
 
-              if (moduleMatches && moduleMatches.groups) {
-                const latestVersion = ''
-                const moduleInstance = new Module(file, latestVersion, moduleMatches.groups.refVersion);
-              }
+  if (matches && matches.groups) {
+    let path = `/api/v3/repos/${matches.groups.owner}/${matches.groups.repo}/releases/latest`
+    let host = matches.groups.host
+    refVersion = matches.groups.refVersion
 
-              // // If the file contains modules with a source that matches the regex, create a `Module` instance with the latest version and the reference version
-              // if (moduleMatches && moduleMatches.groups) {
-              //     const latestVersion = await getLatestModuleVersion(moduleMatches.groups.owner, moduleMatches.groups.name, gitHubPAT);
-              //     const moduleInstance = new Module(file, latestVersion, refVersionMatch.groups.version);
-              //     moduleInstances.push(moduleInstance);
-              // }
-          }
+    if (host === 'github.com') {
+      host = 'api.github.com'
+      path = `/repos/${matches.groups.owner}/${matches.groups.repo}/releases/latest`
+      authHeader = `Bearer ${gitHubPAT}`
+    } else {
+      authHeader = `Bearer ${gitHubEnterprisePAT}`
+    }
 
-          resolve(moduleInstances);
+    if (!gitHubPAT && !gitHubEnterprisePAT) authHeader = ''
+
+    url = new URL(`https://${host}${path}`).toString()
+    return {url, authHeader, refVersion}
+  }
+
+  return {url, authHeader, refVersion}
+}
+
+/**
+ * Retrieves the latest version of the Terraform Module from GitHub.
+ * @param url The URL to the latest version of the Terraform Module.
+ * @param authHeader The Authorization header to use for the request.
+ * @returns A Promise that resolves to a string representing the latest version of the Terraform Module.
+ * @throws An error if the request fails.
+ */
+export async function getLatestModuleVersion(
+  url: string,
+  authHeader: string
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    let options = {}
+
+    if (authHeader !== '') {
+      options = {
+        headers: {
+          'User-Agent': 'update-terraform-action',
+          Authorization: authHeader
+        }
       }
-      catch (error: unknown) {
-          reject(error);
+    } else {
+      options = {
+        headers: {
+          'User-Agent': 'update-terraform-action'
+        }
       }
-  });
+    }
+
+    https
+      .get(url, options, response => {
+        let data = ''
+
+        response.on('data', chunk => {
+          data += chunk
+        })
+
+        response.on('end', () => {
+          const json = JSON.parse(data)
+          resolve(json.tag_name)
+        })
+      })
+      .on('error', error => {
+        reject(error)
+      })
+  })
+}
+
+/**
+ * Generates the URL to the latest version of the Terraform Provider.
+ * @param name The name of the Terraform Provider.
+ * @param source The source of the Terraform Provider.
+ * @returns The URL to the latest version of the Terraform Provider.
+ */
+export function getLatestProviderVersionUrl(
+  name: string,
+  sourceOwner: string | undefined
+): string {
+  if (!sourceOwner) sourceOwner = 'hashicorp'
+  let url = `https://api.github.com/repos/${sourceOwner}/terraform-provider-${name}/releases/latest`
+  return url
+}
+
+/**
+ * Retrieves the latest version of the Terraform Provider from GitHub.
+ * @param url The URL to the latest version of the Terraform Provider.
+ * @returns A Promise that resolves to a string representing the latest version of the Terraform Provider.
+ * @throws An error if the request fails.
+ */
+export async function getLatestProviderVersion(
+  url: string,
+  gitHubPAT: string
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const options = {
+      headers: {
+        'User-Agent': 'update-terraform-action',
+        Authorization: `Bearer ${gitHubPAT}`
+      }
+    }
+
+    https
+      .get(url, options, response => {
+        let data = ''
+
+        response.on('data', chunk => {
+          data += chunk
+        })
+
+        response.on('end', () => {
+          const json = JSON.parse(data)
+          resolve(json.tag_name.replace('v', ''))
+        })
+      })
+      .on('error', error => {
+        reject(error)
+      })
+  })
+}
+
+export async function isUrlValid(url: string): Promise<boolean> {
+  try {
+    const response = await fetch(url)
+    return response.ok
+  } catch (error) {
+    return false
+  }
 }

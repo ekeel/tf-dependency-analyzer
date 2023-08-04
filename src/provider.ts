@@ -1,32 +1,26 @@
-import semver from 'semver'
+import * as semver from 'semver'
 import * as helpers from './helpers'
 
-/**
- * Represents a Terraform Module instance.
- * @property latestVersion The latest version of the Terraform Module.
- * @property refVersion The reference version of the Terraform Module.
- * @property sourceFile The path to the Terraform source file.
- * @property needsUpdate Indicates whether the Terraform source file needs to be updated.
- * @property latestVersionUrl The URL to the latest version of the Terraform Module.
- * @method isCurrentVersionGtRefVersion Checks if the current version of Terraform is greater than or equal to the reference version.
- * @method getModuleInstances Searches for terraform files, and returns an array of `Module` instances.
- */
-export class Module {
-  latestVersion: string // the latest version of the Terraform Module
-  refVersion: string // the reference version of the Terraform Module
+export class Provider {
+  name: string // the name of the Terraform Provider
+  latestVersion: string // the latest version of the Terraform Provider
+  refVersion: string // the reference version of the Terraform Provider
   sourceFile: string // the path to the Terraform source file
   needsUpdate: boolean // indicates whether the Terraform source file needs to be updated
 
   /**
-   * Creates a new instance of the `Module` class.
-   * @param sourceFile The path to the Terraform source file.
-   * @param latestVersion The latest version of the Terraform Module.
-   * @param refVersion The reference version of the Terraform Module.
+   * Creates a new instance of the `Provider` class.
    */
-  constructor(sourceFile: string, latestVersion: string, refVersion: string) {
-    this.sourceFile = sourceFile
+  constructor(
+    name: string,
+    latestVersion: string,
+    refVersion: string,
+    sourceFile: string
+  ) {
+    this.name = name
     this.latestVersion = latestVersion
     this.refVersion = refVersion
+    this.sourceFile = sourceFile
 
     this.needsUpdate = this.isLatestVersionGtRefVersion()
   }

@@ -1,5 +1,5 @@
-import semver from 'semver';
-import { findTerraformFiles, getTfInstanceFromFiles, versionRegex } from "./helpers";
+import semver from 'semver'
+import {findTerraformFiles, versionRegex} from './helpers'
 
 /**
  * Represents a Terraform instance.
@@ -11,10 +11,10 @@ import { findTerraformFiles, getTfInstanceFromFiles, versionRegex } from "./help
  * @method getTfInstances Searches for terraform files, and returns an array of `Terraform` instances.
  */
 export class Terraform {
-  currentVersion: string; // the current version of Terraform
-  refVersion: string; // the reference version of Terraform
-  sourceFile: string; // the path to the Terraform source file
-  needsUpdate: boolean; // indicates whether the Terraform source file needs to be updated
+  currentVersion: string // the current version of Terraform
+  refVersion: string // the reference version of Terraform
+  sourceFile: string // the path to the Terraform source file
+  needsUpdate: boolean // indicates whether the Terraform source file needs to be updated
 
   /**
    * Creates a new instance of the `Terraform` class.
@@ -23,21 +23,10 @@ export class Terraform {
    * @param refVersion The reference version of Terraform.
    */
   constructor(sourceFile: string, currentVersion: string, refVersion: string) {
-    this.sourceFile = sourceFile;
-    this.currentVersion = currentVersion;
-    this.refVersion = refVersion;
-    this.needsUpdate = this.isCurrentVersionGtRefVersion();
-  }
-
-  /**
-   * Searches for terraform files, and returns an array of `Terraform` instances.
-   * @param directory The directory to search for Terraform files.
-   */
-  static async getTfInstances(directory: string): Promise<Terraform[]> {
-    const files = await findTerraformFiles(directory);
-    const tfInstances = await getTfInstanceFromFiles(files);
-
-    return tfInstances;
+    this.sourceFile = sourceFile
+    this.currentVersion = currentVersion
+    this.refVersion = refVersion
+    this.needsUpdate = this.isCurrentVersionGtRefVersion()
   }
 
   /**
@@ -47,14 +36,18 @@ export class Terraform {
    * @throws An error if the reference version of Terraform is not a valid version.
    */
   isCurrentVersionGtRefVersion(): boolean {
-    const currentVersion = this.currentVersion.match(versionRegex)?.groups?.numVersion ?? '';
-    const refVersion = this.refVersion.match(versionRegex)?.groups?.numVersion ?? '';
+    const currentVersion =
+      this.currentVersion.match(versionRegex)?.groups?.numVersion ?? ''
+    const refVersion =
+      this.refVersion.match(versionRegex)?.groups?.numVersion ?? ''
 
     if (!currentVersion || !refVersion) {
-      const message = !currentVersion ? 'Invalid current_version' : 'Invalid ref_version';
-      throw new Error(message);
+      const message = !currentVersion
+        ? 'Invalid current_version'
+        : 'Invalid ref_version'
+      throw new Error(message)
     }
 
-    return semver.gt(currentVersion, refVersion);
+    return semver.gt(currentVersion, refVersion)
   }
 }
