@@ -90,15 +90,12 @@ async function isDirectory(directory: string): Promise<boolean> {
  * @returns A Promise that resolves to a string representing the latest version of Terraform.
  */
 export async function getCurrentTerraformVersion(): Promise<string> {
-  console.debug('Getting current Terraform version...')
   return new Promise((resolve, reject) => {
     const options = {
       headers: {
         'User-Agent': 'update-terraform-action'
       }
     }
-
-    console.debug('Making request to HashiCorp Checkpoint API...')
 
     https
       .get(

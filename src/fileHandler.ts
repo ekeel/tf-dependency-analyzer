@@ -70,7 +70,6 @@ export class FileHandler {
     if (tfMatch && tfMatch.groups) {
       // Get the current Terraform version
       const currentVersion = await helpers.getCurrentTerraformVersion()
-      console.debug(`Current Terraform version: ${currentVersion}`)
 
       // Create a new Terraform instance and add it to the array
       const tfInstance = new Terraform(
@@ -192,11 +191,11 @@ export class FileHandler {
                 `Unable to automatically generate a URL for provider ${nameMatch.groups.name}. Please provide a URL in the providerVersionMap.`
               )
             }
-          } else {
-            console.debug(
-              `No version found for provider ${nameMatch.groups.name}. No need to update.`
-            )
-          }
+          } //else {
+          //   console.log(
+          //     `No version found for provider ${nameMatch.groups.name}. No need to update.`
+          //   )
+          // }
         }
 
         providerMatch = helpers.providerRegex.exec(requiredProvidersMatches[0])
