@@ -191,11 +191,7 @@ export class FileHandler {
                 `Unable to automatically generate a URL for provider ${nameMatch.groups.name}. Please provide a URL in the providerVersionMap.`
               )
             }
-          } //else {
-          //   console.log(
-          //     `No version found for provider ${nameMatch.groups.name}. No need to update.`
-          //   )
-          // }
+          }
         }
 
         providerMatch = helpers.providerRegex.exec(requiredProvidersMatches[0])

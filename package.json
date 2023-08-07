@@ -1,5 +1,5 @@
 {
-  "name": "tf-updater",
+  "name": "tf-dependency-updater",
   "version": "1.0.0",
   "description": "Update terraform dependencies (providers, terraform version, & modules).",
   "main": "dist/cli/index.js",

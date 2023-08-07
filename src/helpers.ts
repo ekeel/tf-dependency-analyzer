@@ -4,26 +4,47 @@ import https from 'https'
 import {Terraform} from './terraform'
 import {Module} from './module'
 
+// Regular expression for matching a semantic version number
 export const versionRegex = /^(?<operator>.*?)(?<numVersion>\d+\.\d+\.\d+)$/m
+
+// Regular expression for matching a required Terraform version in a .tf file
 export const terraformRegex =
   /terraform[\s\S]*?\{[\s\S]*?required_version\s*=\s*"(?<refVersion>.+?)"[\s\S]*?}/
 
+// Regular expression for matching required providers in a .tf file
 export const requiredProvidersRegex =
   /required_providers\s*{\s*((?:[a-zA-Z0-9_-]+)\s*=\s*{\s*(?:(?:source\s*=\s*"[^"]*")(?:\s*version\s*=\s*"[^"]*")?|(?:version\s*=\s*"[^"]*")(?:\s*source\s*=\s*"[^"]*")?)\s*}[\s\n]*)+\s*}/gm
+
+// Regular expression for matching a provider block in a .tf file
 export const providerRegex =
   /(?<name>[a-zA-Z0-9_-]+)\s*=\s*{\s*(?:(?:source\s*=\s*"[^"]*")(?:\s*version\s*=\s*"[^"]*")?|(?:version\s*=\s*"[^"]*")(?:\s*source\s*=\s*"[^"]*")?)/gm
+
+// Regular expression for matching a provider version in a .tf file
 export const providerVersionRegex = /version\s*=\s*"(?<refVersion>.*?)"/m
+
+// Regular expression for matching a provider name in a .tf file
 export const providerNameRegex = /(?<name>[a-zA-Z0-9_-]+)\s*=\s*{/m
+
+// Regular expression for matching a provider source in a .tf file
 export const providerSourceRegex = /source\s*=\s*"(?<owner>.*?)\/(?<name>.*?)"/m
 
+// Regular expression for matching a module block in a .tf file
 export const modRegex =
   /module\s*"(?<name>.*?)"\s*{[\s\S]*?source\s*=\s*"(?<source>.*?)"/gm
+
+// Regular expression for matching a Git source URL without a ref in a module block in a .tf file
 export const modSourceGitNoRef =
   /^git@(?<host>.*?):(?<owner>.*?)\/(?<repo>.*?)\.git/m
+
+// Regular expression for matching a Git source URL with a ref in a module block in a .tf file
 export const modSourceGitRef =
   /^git@(?<host>.*?):(?<owner>.*?)\/(?<repo>.*?)\.git[\s\S]*?ref=(?<refVersion>.*?)$/m
+
+// Regular expression for matching an HTTPS source URL without a ref in a module block in a .tf file
 export const modSourceHttpsNoRef =
   /^https:\/\/(?<host>.*?)\/(?<owner>.*?)\/(?<repo>.*?)\.git/m
+
+// Regular expression for matching an HTTPS source URL with a ref in a module block in a .tf file
 export const modSourceHttpsRef =
   /^https:\/\/(?<host>.*?)\/(?<owner>.*?)\/(?<repo>.*?)\.git[\s\S]*?ref=(?<refVersion>.*?)$/m
 
