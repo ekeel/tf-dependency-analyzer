@@ -18,7 +18,7 @@ Allows for discovery of all provider, modules, and the terraform version from a 
   - [`Module` class](#module-class)
     - [Properties](#properties-3)
     - [Methods](#methods-3)
-  - [\`helpers.ts'](#helpersts)
+  - [`helpers.ts`](#helpersts)
     - [Regular Expressions](#regular-expressions)
     - [Methods](#methods-4)
 
@@ -146,7 +146,7 @@ The `Module` class represents a Terraform module.
 - `isVersionGtRefVersion(refVersion: string): boolean`
     - Checks if the latest version of the Terraform module is greater than or equal to the reference version.
 
-## `helpers.ts'
+## `helpers.ts`
 
 The `helpers.ts` file contains helper functions and regular expressions.
 
