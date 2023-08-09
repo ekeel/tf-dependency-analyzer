@@ -1,6 +1,6 @@
 {
   "name": "tf-dependency-analyzer",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Analyze a terraform directory and get a list of terraform/providers/and modules.",
   "main": "dist/cli/index.js",
   "engines" : { 

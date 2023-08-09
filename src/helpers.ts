@@ -114,7 +114,7 @@ export async function getCurrentTerraformVersion(): Promise<string> {
   return new Promise((resolve, reject) => {
     const options = {
       headers: {
-        'User-Agent': 'update-terraform-action'
+        'User-Agent': 'tf-dependency-analyzer'
       }
     }
 
@@ -210,14 +210,14 @@ export async function getLatestModuleVersion(
     if (authHeader !== '') {
       options = {
         headers: {
-          'User-Agent': 'update-terraform-action',
+          'User-Agent': 'tf-dependency-analyzer',
           Authorization: authHeader
         }
       }
     } else {
       options = {
         headers: {
-          'User-Agent': 'update-terraform-action'
+          'User-Agent': 'tf-dependency-analyzer'
         }
       }
     }
@@ -269,7 +269,7 @@ export async function getLatestProviderVersion(
   return new Promise((resolve, reject) => {
     const options = {
       headers: {
-        'User-Agent': 'update-terraform-action',
+        'User-Agent': 'tf-dependency-analyzer',
         Authorization: `Bearer ${gitHubPAT}`
       }
     }

@@ -9,9 +9,9 @@ export class FileHandler {
   terraformInstances: Terraform[]
   providerInstances: Provider[]
   moduleInstances: Module[]
-  updateTerraform: boolean
-  updateProviders: boolean
-  updateModules: boolean
+  analyzeTerraform: boolean
+  analyzeProviders: boolean
+  analyzeModules: boolean
   providerVersionMap: Map<string, string>
 
   readonly fileContents: string
@@ -21,25 +21,25 @@ export class FileHandler {
   /**
    * Creates a new instance of the `FileHandler` class.
    * @param file The path to the Terraform source file.
-   * @param updateTerraform Whether to update Terraform instances.
-   * @param updateProviders Whether to update provider instances.
-   * @param updateModules Whether to update module instances.
+   * @param analyzeTerraform Whether to analyze Terraform instances.
+   * @param analyzeProviders Whether to analyze provider instances.
+   * @param analyzeModules Whether to analyze module instances.
    */
   constructor(
     file: string,
     gitHubPAT: string | undefined,
     gitHubEnterprisePAT: string | undefined,
-    updateTerraform: boolean,
-    updateProviders: boolean,
-    updateModules: boolean,
+    analyzeTerraform: boolean,
+    analyzeProviders: boolean,
+    analyzeModules: boolean,
     providerVersionMap: Map<string, string> | undefined
   ) {
     this.file = file
     this.gitHubPAT = gitHubPAT ?? ''
     this.gitHubEnterprisePAT = gitHubEnterprisePAT ?? ''
-    this.updateTerraform = updateTerraform
-    this.updateProviders = updateProviders
-    this.updateModules = updateModules
+    this.analyzeTerraform = analyzeTerraform
+    this.analyzeProviders = analyzeProviders
+    this.analyzeModules = analyzeModules
     this.providerVersionMap = providerVersionMap ?? new Map<string, string>()
     this.fileContents = this.getFileContents()
 
@@ -57,9 +57,9 @@ export class FileHandler {
   }
 
   async populate() {
-    if (this.updateTerraform) await this.getTerraformInstances()
-    if (this.updateProviders) await this.getProviderInstances()
-    if (this.updateModules) await this.getModuleInstances()
+    if (this.analyzeTerraform) await this.getTerraformInstances()
+    if (this.analyzeProviders) await this.getProviderInstances()
+    if (this.analyzeModules) await this.getModuleInstances()
   }
 
   /**

@@ -28,39 +28,50 @@ async function main() {
     console.log('No dir argument provided.');
     return;
   }
-  if (!parsedArgs.has('updateTerraform')) {
-    console.log('No updateTerraform argument provided.');
+  if (!parsedArgs.has('analyzeTerraform')) {
+    console.log('No analyzeTerraform argument provided.');
     return;
   }
-  if (!parsedArgs.has('updateProviders')) {
-    console.log('No updateProviders argument provided.');
+  if (!parsedArgs.has('analyzeProviders')) {
+    console.log('No analyzeProviders argument provided.');
     return;
   }
-  if (!parsedArgs.has('updateModules')) {
-    console.log('No updateModules argument provided.');
+  if (!parsedArgs.has('analyzeModules')) {
+    console.log('No analyzeModules argument provided.');
     return;
+  }
+  if (!parsedArgs.has('githubPAT')) {
+    if (!(process.env.TDU_GITHUB_PAT as string)) {
+      console.log('No githubPAT argument provided and TDU_GITHUB_PAT is not set.');
+      return;
+    }
+  }
+  if (!parsedArgs.has('githubEnterprisePAT')) {
+    if (!(process.env.TDU_GITHUB_ENTERPRISE_PAT as string)) {
+      console.log('No githubEnterprisePAT argument provided and TDU_GITHUB_ENTERPRISE_PAT is not set.');
+      return;
+    }
   }
 
   const tfDir = parsedArgs.get('dir') as string;
-  const updateTerraform = parsedArgs.get('updateTerraform') === 'true';
-  const updateProviders = parsedArgs.get('updateProviders') === 'true';
-  const updateModules = parsedArgs.get('updateModules') === 'true';
+  const analyzeTerraform = parsedArgs.get('analyzeTerraform') === 'true';
+  const analyzeProviders = parsedArgs.get('analyzeProviders') === 'true';
+  const analyzeModules = parsedArgs.get('analyzeModules') === 'true';
+  const gitHubPAT = parsedArgs.get('githubPAT') as string ?? process.env.TDU_GITHUB_PAT as string;
+  const gitHubEnterprisePAT = parsedArgs.get('githubEnterprisePAT') as string ?? process.env.TDU_GITHUB_ENTERPRISE_PAT as string;
 
-  console.log("Config:")
+  console.log("\nConfig:")
   console.log(`  TF Directory: ${tfDir}`);
-  console.log(`  Update Terraform: ${updateTerraform}`);
-  console.log(`  Update Providers: ${updateProviders}`);
-  console.log(`  Update Modules: ${updateModules}`);
-
-  const gitHubPAT = process.env.TDU_GITHUB_PAT as string;
-  const gitHubEnterprisePAT = process.env.TDU_GITHUB_ENTERPRISE_PAT as string;
+  console.log(`  Analyze Terraform: ${analyzeTerraform}`);
+  console.log(`  Analyze Providers: ${analyzeProviders}`);
+  console.log(`  Analyze Modules: ${analyzeModules}\n`);
 
   const files = await findTerraformFiles(tfDir);
 
   let fileHandlers: FileHandler[] = [];
 
   for (const file of files) {
-    const fileHandler = new FileHandler(file, gitHubPAT, gitHubEnterprisePAT, updateTerraform, updateProviders, updateModules, undefined);
+    const fileHandler = new FileHandler(file, gitHubPAT, gitHubEnterprisePAT, analyzeTerraform, analyzeProviders, analyzeModules, undefined);
     await fileHandler.populate();
 
     fileHandlers.push(fileHandler);

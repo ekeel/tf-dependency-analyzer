@@ -62,12 +62,12 @@ The `FileHandler` class is responsible for handling Terraform source files. It p
     - An array of `Provider` instances.
 - `moduleInstances`
     - An array of `Module` instances.
-- `updateTerraform`
-    - A boolean indicating whether to update Terraform instances.
-- `updateProviders`
-    - A boolean indicating whether to update provider instances.
-- `updateModules`
-    - A boolean indicating whether to update module instances.
+- `analyzeTerraform`
+    - A boolean indicating whether to analyze Terraform instances.
+- `analyzeProviders`
+    - A boolean indicating whether to analyze provider instances.
+- `analyzeModules`
+    - A boolean indicating whether to analyze module instances.
 - `providerVersionMap`
     - A `Map` object containing provider names and their corresponding URLs.
 
