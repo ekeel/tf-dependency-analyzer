@@ -19,4 +19,7 @@ jobs:
       run: npm install
 
     - name: Run tests
+      env:
+        TDU_GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+        TDU_GITHUB_ENTERPRISE_PAT: ${{ secrets.GITHUB_TOKEN }}
       run: npm test
