@@ -1,6 +1,15 @@
 import * as semver from 'semver'
 import * as helpers from './helpers'
 
+/**
+ * Represents a Terraform Provider instance.
+ * @property name The name of the Terraform Provider.
+ * @property latestVersion The latest version of the Terraform Provider.
+ * @property refVersion The reference version of the Terraform Provider.
+ * @property sourceFile The path to the Terraform source file.
+ * @property needsUpdate Indicates whether the Terraform source file needs to be updated.
+ * @method isCurrentVersionGtRefVersion Checks if the current version of Terraform is greater than or equal to the reference version.
+ */
 export class Provider {
   name: string // the name of the Terraform Provider
   latestVersion: string // the latest version of the Terraform Provider

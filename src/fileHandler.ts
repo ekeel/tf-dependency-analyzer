@@ -83,8 +83,6 @@ export class FileHandler {
 
   /**
    * Parses the file contents and creates `Module` instances if the file contains modules.
-   * @param gitHubPAT A GitHub personal access token.
-   * @param gitHubEnterprisePAT A GitHub Enterprise personal access token.
    */
   async getModuleInstances() {
     // Get the module matches from the file contents
@@ -116,6 +114,9 @@ export class FileHandler {
     }
   }
 
+  /**
+   * Parses the file contents and creates `Provider` instances if the file contains providers.
+   */
   async getProviderInstances() {
     let requiredProvidersMatches = helpers.requiredProvidersRegex.exec(
       this.fileContents

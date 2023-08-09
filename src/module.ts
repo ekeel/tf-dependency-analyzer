@@ -9,7 +9,6 @@ import * as helpers from './helpers'
  * @property needsUpdate Indicates whether the Terraform source file needs to be updated.
  * @property latestVersionUrl The URL to the latest version of the Terraform Module.
  * @method isCurrentVersionGtRefVersion Checks if the current version of Terraform is greater than or equal to the reference version.
- * @method getModuleInstances Searches for terraform files, and returns an array of `Module` instances.
  */
 export class Module {
   latestVersion: string // the latest version of the Terraform Module
