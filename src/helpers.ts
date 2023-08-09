@@ -293,6 +293,11 @@ export async function getLatestProviderVersion(
   })
 }
 
+/**
+ * Checks if a URL string is valid.
+ * @param url The URL string to check.
+ * @returns A Promise that resolves to a boolean indicating whether the URL is valid or not.
+ */
 export async function isUrlValid(url: string): Promise<boolean> {
   try {
     const response = await fetch(url)
