@@ -2,6 +2,27 @@
 
 Allows for discovery of all provider, modules, and the terraform version from a Terraform directory.
 
+- [TF Dependency Analyzer](#tf-dependency-analyzer)
+  - [Usage](#usage)
+    - [Install](#install)
+    - [Example](#example)
+  - [`FileHandler` class](#filehandler-class)
+    - [Properties](#properties)
+    - [Methods](#methods)
+  - [`Terraform` class](#terraform-class)
+    - [Properties](#properties-1)
+    - [Methods](#methods-1)
+  - [`Provider` class](#provider-class)
+    - [Properties](#properties-2)
+    - [Methods](#methods-2)
+  - [`Module` class](#module-class)
+    - [Properties](#properties-3)
+    - [Methods](#methods-3)
+  - [\`helpers.ts'](#helpersts)
+    - [Regular Expressions](#regular-expressions)
+    - [Methods](#methods-4)
+
+
 ## Usage
 
 ### Install
